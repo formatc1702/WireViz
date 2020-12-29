@@ -1,0 +1,64 @@
+connectors:
+  XS:
+    type: Screw terminal connector
+    subtype: male
+    color: GN
+    pincount: 3
+  XM:
+    type: Molex KK 254
+    subtype: female
+    pincount: 3
+  F:
+    style: simple
+    type: Ferrule
+    subtype: 0.25 mm2
+    color: LB
+  LED_RD: &LED
+    type: LED
+    subtype: 5mm
+    show_pincount: false
+    color: RD
+    pins: [+, -]
+    pinlabels: [Anode, Cathode]
+  LED_GN:
+    <<: *LED
+    color: GN
+  LED_YE:
+    <<: *LED
+    color: YE
+
+cables:
+  C:
+    category: bundle
+    # show_name: false
+    colors: [RD, BK]
+    gauge: 0.25 mm2
+  W:
+    category: bundle
+    # show_name: false
+    colors: [BN]
+    gauge: 0.25 mm2
+
+connections:
+  -
+    - [F.F1, F.F2]
+    - C.W1: [1,2]
+    - LED_RD: [+,-]
+  -
+    - F.F3
+    - W.W2: [1]
+    - LED_GN: [+]
+  -
+    - LED_GN: [-]
+    - W.W3: [1]
+  -
+    - XS.X1: [1-3]
+    - <--
+    - [F1, F2, F3]
+  -
+    - LED_YE: [+,-]
+    - C.W4: [1,2]
+    - XM.X2: [1,2]
+  -
+    - W3: [1]
+    - X2: [3]

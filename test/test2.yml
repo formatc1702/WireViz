@@ -1,0 +1,25 @@
+# based on @MSBGit's example in #134
+
+connectors:
+  X1: &dupont
+    type: Dupont 2.54mm
+    subtype: male
+    pincount: 5
+    color: BK
+  X2:
+    <<: *dupont
+    subtype: female
+
+cables:
+  W:
+    category: bundle
+    colors: [RD, BK, BU, GN]
+    length: 0.2
+
+connections:
+  -
+    - W.W1: [1-4]
+    - X1: [1-4]
+    - ==>
+    - X2: [1-4]
+    - W.W2: [1-4]

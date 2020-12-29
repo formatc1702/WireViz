@@ -102,7 +102,6 @@ class Connector:
     show_name: Optional[bool] = None
     show_pincount: Optional[bool] = None
     hide_disconnected_pins: bool = False
-    autogenerate: bool = False
     loops: List[List[Pin]] = field(default_factory=list)
     ignore_in_bom: bool = False
     additional_components: List[AdditionalComponent] = field(default_factory=list)
@@ -134,7 +133,8 @@ class Connector:
             raise Exception('Pins are not unique')
 
         if self.show_name is None:
-            self.show_name = not self.autogenerate # hide auto-generated designators by default
+            # hide designators for simple and for auto-generated connectors by default
+            self.show_name = (self.style != 'simple' and self.name[0:2] != '__')
 
         if self.show_pincount is None:
             self.show_pincount = self.style != 'simple' # hide pincount for simple (1 pin) connectors by default
@@ -185,7 +185,7 @@ class Cable:
     colors: List[Colors] = field(default_factory=list)
     wirelabels: List[Wire] = field(default_factory=list)
     color_code: Optional[ColorScheme] = None
-    show_name: bool = True
+    show_name: Optional[bool] = None
     show_wirecount: bool = True
     show_wirenumbers: Optional[bool] = None
     ignore_in_bom: bool = False
@@ -268,9 +268,11 @@ class Cable:
                 else:
                     raise Exception('lists of part data are only supported for bundles')
 
-        # by default, show wire numbers for cables, hide for bundles
+        if self.show_name is None:
+            self.show_name = self.name[0:2] != '__'  # hide designators for auto-generated cables by default
+
         if not self.show_wirenumbers:
-            self.show_wirenumbers = self.category != 'bundle'
+            self.show_wirenumbers = self.category != 'bundle'  # by default, show wire numbers for cables, hide for bundles
 
         for i, item in enumerate(self.additional_components):
             if isinstance(item, dict):
@@ -309,3 +311,17 @@ class Connection:
     via_port: Wire
     to_name: Optional[Designator]
     to_port: Optional[Pin]
+
+@dataclass
+class MatePin:
+    from_name: Designator
+    from_port: Pin
+    to_name: Designator
+    to_port: Pin
+    shape: str
+
+@dataclass
+class MateComponent:
+    from_name: Designator
+    to_name: Designator
+    shape: str

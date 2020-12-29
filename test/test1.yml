@@ -1,0 +1,25 @@
+# based on @stmaxed's example in #134
+
+connectors:
+  X1: &X
+    type: Screw connector
+    subtype: male
+    color: GN
+    pincount: 4
+    pinlabels: [A, B, C, D]
+  F:
+    style: simple
+    type: Ferrule
+    color: GY
+
+cables:
+  W:
+    color: BK
+    colors: [BK, WH, BU, BN]
+
+connections:
+  -  # ferrules + connector X1
+    - W.W1: [1-4]
+    - F.
+    - -->
+    - X1: [1-4]

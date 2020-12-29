@@ -66,6 +66,12 @@ def expand(yaml_data):
     return output
 
 
+def get_single_key_and_value(d: dict):
+    k = list(d.keys())[0]
+    v = d[k]
+    return (k, v)
+
+
 def int2tuple(inp):
     if isinstance(inp, tuple):
         output = inp
@@ -105,6 +111,18 @@ def open_file_write(filename):
 
 def open_file_append(filename):
     return open(filename, 'a', encoding='UTF-8')
+
+def is_arrow(inp):
+    """
+    Matches strings of one or multiple `-` or `=` (but not mixed)
+    optionally starting with `<` and/or ending with `>`.
+
+    Examples:
+      <-, --, ->, <->
+      <==, ==, ==>, <=>
+    """
+    # regex by @shiraneyo
+    return bool(re.match(r"^\s*(?P<leftHead><?)(?P<body>-+|=+)(?P<rightHead>>?)\s*$", inp))
 
 def aspect_ratio(image_src):
     try:

@@ -9,7 +9,7 @@ from itertools import zip_longest
 import re
 
 from wireviz import wv_colors, __version__, APP_NAME, APP_URL
-from wireviz.DataClasses import Connector, Cable
+from wireviz.DataClasses import Connector, Cable, MatePin, MateComponent
 from wireviz.wv_colors import get_color_hex
 from wireviz.wv_gv_html import nested_html_table, html_colorbar, html_image, \
     html_caption, remove_links, html_line_breaks
@@ -17,8 +17,7 @@ from wireviz.wv_bom import manufacturer_info_field, component_table_entry, \
     get_additional_component_table, bom_list, generate_bom
 from wireviz.wv_html import generate_html_output
 from wireviz.wv_helper import awg_equiv, mm2_equiv, tuplelist2tsv, flatten2d, \
-    open_file_read, open_file_write
-
+    open_file_read, open_file_write, is_arrow
 
 class Harness:
 
@@ -27,6 +26,7 @@ class Harness:
         self.mini_bom_mode = True
         self.connectors = {}
         self.cables = {}
+        self.mates = []
         self._bom = []  # Internal Cache for generated bom
         self.additional_bom_items = []
 
@@ -35,6 +35,12 @@ class Harness:
 
     def add_cable(self, name: str, *args, **kwargs) -> None:
         self.cables[name] = Cable(name, *args, **kwargs)
+
+    def add_mate_pin(self, *args, **kwargs) -> None:
+        self.mates.append(MatePin(*args, **kwargs))
+
+    def add_mate_component(self, *args, **kwargs) -> None:
+        self.mates.append(MateComponent(*args, **kwargs))
 
     def add_bom_item(self, item: dict) -> None:
         self.additional_bom_items.append(item)
@@ -62,7 +68,12 @@ class Harness:
                     raise Exception(f'{name}:{pin} not found.')
 
         # check via cable
-        if via_name in self.cables:
+        if is_arrow(via_name):
+            if '-' in via_name:
+                self.mates[(from_name, from_pin, to_name, to_pin)] = via_name
+            elif '=' in via_name:
+                self.mates[(from_name, to_name)] = via_name
+        elif via_name in self.cables:
             cable = self.cables[via_name]
             # check if provided name is ambiguous
             if via_wire in cable.colors and via_wire in cable.wirelabels:
@@ -106,8 +117,17 @@ class Harness:
             for connection_color in cable.connections:
                 if connection_color.from_port is not None:  # connect to left
                     self.connectors[connection_color.from_name].ports_right = True
+                    self.connectors[connection_color.from_name].activate_pin(connection_color.from_port)
                 if connection_color.to_port is not None:  # connect to right
                     self.connectors[connection_color.to_name].ports_left = True
+                    self.connectors[connection_color.to_name].activate_pin(connection_color.to_port)
+
+        for mate in self.mates:
+            if isinstance(mate, MatePin):
+                self.connectors[mate.from_name].ports_right = True
+                self.connectors[mate.from_name].activate_pin(mate.from_port)
+                self.connectors[mate.to_name].ports_left = True
+                self.connectors[mate.to_name].activate_pin(mate.to_port)
 
         for connector in self.connectors.values():
 
@@ -328,6 +348,30 @@ class Harness:
             html = '\n'.join(html)
             dot.node(cable.name, label=f'<\n{html}\n>', shape='box',
                      style='filled,dashed' if cable.category == 'bundle' else '', margin='0', fillcolor='white')
+
+        for mate in self.mates:
+            if mate.shape[0] == '<' and mate.shape[-1] == '>':
+                dir = 'both'
+            elif mate.shape[0] == '<':
+                dir = 'back'
+            elif mate.shape[-1] == '>':
+                dir = 'forward'
+            else:
+                dir = 'none'
+
+            if isinstance(mate, MatePin):
+                color = '#000000'
+            elif isinstance(mate, MateComponent):
+                color = '#000000:#ffffff:#000000'  # GraphViz bug? 'back' and 'both' do not work with multicolor edges
+            else:
+                raise Exception(f'{mate} is an unknown mate')
+
+            dot.attr('edge', color=color, style='dashed', dir=dir)
+            from_port = f':p{mate.from_port}r' if isinstance(mate, MatePin) and self.connectors[mate.from_name].style != 'simple' else ''
+            code_from = f'{mate.from_name}{from_port}:e'
+            to_port = f':p{mate.to_port}l' if isinstance(mate, MatePin) and self.connectors[mate.to_name].style != 'simple' else ''
+            code_to = f'{mate.to_name}{to_port}:w'
+            dot.edge(code_from, code_to)
 
         return dot
 

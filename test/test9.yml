@@ -1,0 +1,55 @@
+connectors:
+  JSTMALE: &JST_SM  # use generic names here, assign designators at generation time
+    type: JST SM
+    subtype: male
+    pincount: 4
+    pinlabels: [A, B, C, D]
+  JSTFEMALE:
+    <<: *JST_SM  # easily create JSTMALE's matching connector
+    subtype: female
+  X4:  # this connector is only used once, use fixed designator here already
+    type: Screw terminal connector
+    pincount: 4
+    color: GN
+    pinlabels: [W, X, Y, Z]
+  S:
+    style: simple
+    type: Splice
+    color: CU
+  F:
+    style: simple
+    type: Ferrule
+    color: GY
+
+
+cables:
+  CABLE:
+    wirecount: 4
+    color_code: DIN
+    length: 0.1
+  WIRE:
+    wirecount: 1
+    colors: [BK]
+    length: 0.1
+
+connections:
+  -
+    - JSTMALE.X1: [4-1]   # use `.` syntax to generate a new instance of JSTMALE, named X1
+    - CABLE.W1: [1-4]     # same syntax for cables
+    - [S., S., S.S1, S.]  # splice W1 and W2 together; only wire #3 needs a user-defined designator
+    - CABLE.W2: [1-4]
+    - S.                  # test shorthand, auto-get required number of ferrules from context
+    - CABLE.W21: [1-4]
+    - JSTFEMALE.X2: [1-4]
+    - <=>                 # mate X2 and X3
+    - JSTMALE.X3: [1-4]
+    - CABLE.W3: [1-4]
+    - [F., F., F., F.]
+    - -->                 # insert ferrules into screw terminal connector
+    - X4: [2,1,4,3]       # X4 does not require auto-generation, thus no `.` syntax here
+  -
+    - S1: [1]             # reuse previously generated splice
+                          # TODO: Make it work with `- F1` only, making pin 1 is implied
+    - WIRE.: [1]          # We don't care about a simple wire's designator, auto-generate please!
+                          # TODO: Make it work with `- W.W4: 1`, dropping the need for `[]`
+    - X2: [4]

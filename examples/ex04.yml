@@ -8,13 +8,12 @@ cables:
     category: bundle
 
 connectors:
-  ferrule_crimp:
+  F:
     style: simple
-    autogenerate: true
     type: Crimp ferrule
 
 connections:
   -
-    - ferrule_crimp
+    - F.
     - W1: [1-6]
-    - ferrule_crimp
+    - F.

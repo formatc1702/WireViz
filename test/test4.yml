@@ -1,0 +1,26 @@
+# based on @formatc1702's example in #184
+
+connectors:
+  X:
+    pincount: 4
+    pinlabels: [A, B, C, D]
+  F:
+    style: simple
+    type: ferrule
+
+cables:
+  C:
+    wirecount: 4
+    color_code: DIN
+
+connections:
+  -
+    - X.X1: [1-4]
+    - C.C1: [1-4]
+    - [F.F1, F.F2, F.F3, F.F4]  # generate new instances of F and assign designators
+    - C.C2: [1-4]
+    - X.X2: [1-4]
+  -
+    - [F1, F2, F3, F4]  # use previously assigned designators
+    - C.C3: [1-4]
+    - X.X3: [1-4]
