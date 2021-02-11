@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Optional, List, Tuple, Union
+from typing import Dict, Optional, List, Tuple, Union
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 
@@ -42,6 +42,12 @@ class Metadata:
 class Options:
     color_mode: ColorMode = 'SHORT'
     mini_bom_mode: bool = True
+
+
+@dataclass
+class Tweak:
+    override: Optional[Dict[Designator, Dict[str, str]]] = None
+    append: Union[str, List[str], None] = None
 
 
 @dataclass
