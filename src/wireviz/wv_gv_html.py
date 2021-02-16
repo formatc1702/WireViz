@@ -4,6 +4,7 @@
 from typing import List, Union
 import re
 
+from wireviz.DataClasses import Color
 from wireviz.wv_colors import translate_color
 from wireviz.wv_helper import remove_links
 
@@ -32,8 +33,13 @@ def nested_html_table(rows):
     html.append('</table>')
     return html
 
-def html_colorbar(color):
-    return f'<tdX bgcolor="{translate_color(color, "HEX")}" width="4">' if color else None
+def html_bgcolor(color: Color, _extra_attr: str = '') -> str:
+    """Return <td> attributes prefix for bgcolor or '' if no color."""
+    return f'<tdX bgcolor="{translate_color(color, "HEX")}"{_extra_attr}>' if color else ''
+
+def html_colorbar(color: Color) -> str:
+    """Return <tdX> attributes prefix for bgcolor and minimum width or None if no color."""
+    return html_bgcolor(color, ' width="4"') if color else None
 
 def html_image(image):
     from wireviz.DataClasses import Image
