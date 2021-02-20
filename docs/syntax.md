@@ -334,6 +334,7 @@ image:
   src: <path>        # path to the image file
   # optional parameters:
   caption: <str>     # text to display below the image
+  bgcolor: <color>   # Background color of entry in diagram component box
   width: <int>       # range: 1~65535; unit: points
   height: <int>      # range: 1~65535; unit: points
   # if only one dimension (width/height) is specified, the image is scaled proportionally.

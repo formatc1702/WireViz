@@ -40,6 +40,7 @@ class Image:
     width: Optional[int] = None
     height: Optional[int] = None
     fixedsize: Optional[bool] = None
+    bgcolor: Optional[Color] = None
     # Contents of the text cell <td> just below the image cell:
     caption: Optional[MultilineHypertext] = None
     # See also HTML doc at https://graphviz.org/doc/info/shapes.html#html

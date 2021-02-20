@@ -59,11 +59,12 @@ def html_image(image):
      <td{html}</td>
     </tr></table>
    '''
-    return f'''<tdX{' sides="TLR"' if image.caption else ''}{html}'''
+    return f'''<tdX{' sides="TLR"' if image.caption else ''}{html_bgcolor_attr(image.bgcolor)}{html}'''
 
 def html_caption(image):
     from wireviz.DataClasses import Image
-    return f'<tdX sides="BLR">{html_line_breaks(image.caption)}' if image and image.caption else None
+    return (f'<tdX sides="BLR"{html_bgcolor_attr(image.bgcolor)}>{html_line_breaks(image.caption)}'
+                if image and image.caption else None)
 
 def html_size_attr(image):
     from wireviz.DataClasses import Image
