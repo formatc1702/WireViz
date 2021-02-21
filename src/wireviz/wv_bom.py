@@ -5,7 +5,7 @@ from typing import List, Union
 from collections import Counter
 
 from wireviz.DataClasses import Connector, Cable
-from wireviz.wv_gv_html import html_line_breaks
+from wireviz.wv_gv_html import html_bgcolor_attr, html_line_breaks
 from wireviz.wv_helper import clean_whitespace
 
 def get_additional_component_table(harness, component: Union[Connector, Cable]) -> List[str]:
@@ -16,9 +16,9 @@ def get_additional_component_table(harness, component: Union[Connector, Cable]) 
             qty = extra.qty * component.get_qty_multiplier(extra.qty_multiplier)
             if harness.mini_bom_mode:
                 id = get_bom_index(harness, extra.description, extra.unit, extra.manufacturer, extra.mpn, extra.pn)
-                rows.append(component_table_entry(f'#{id} ({extra.type.rstrip()})', qty, extra.unit))
+                rows.append(component_table_entry(f'#{id} ({extra.type.rstrip()})', qty, extra.unit, extra.bgcolor))
             else:
-                rows.append(component_table_entry(extra.description, qty, extra.unit, extra.pn, extra.manufacturer, extra.mpn))
+                rows.append(component_table_entry(extra.description, qty, extra.unit, extra.bgcolor, extra.pn, extra.manufacturer, extra.mpn))
     return(rows)
 
 def get_additional_component_bom(component: Union[Connector, Cable]) -> List[dict]:
@@ -145,7 +145,7 @@ def bom_list(bom):
         bom_list.append(item_list)
     return bom_list
 
-def component_table_entry(type, qty, unit=None, pn=None, manufacturer=None, mpn=None):
+def component_table_entry(type, qty, unit=None, bgcolor=None, pn=None, manufacturer=None, mpn=None):
     output = f'{qty}'
     if unit:
         output += f' {unit}'
@@ -163,7 +163,7 @@ def component_table_entry(type, qty, unit=None, pn=None, manufacturer=None, mpn=
     output = html_line_breaks(output)
     # format the above output as left aligned text in a single visible cell
     # indent is set to two to match the indent in the generated html table
-    return f'''<table border="0" cellspacing="0" cellpadding="3" cellborder="1"><tr>
+    return f'''<table border="0" cellspacing="0" cellpadding="3" cellborder="1"{html_bgcolor_attr(bgcolor)}><tr>
    <td align="left" balign="left">{output}</td>
   </tr></table>'''
 
