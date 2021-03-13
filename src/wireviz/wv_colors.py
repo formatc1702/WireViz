@@ -107,23 +107,37 @@ _color_ger = {
 
 color_default = '#ffffff'
 
+_hex_digits = set('0123456789abcdefABCDEF')
 
 def get_color_hex(input, pad=False):
+    """Return list of hex colors from either a string of color names or :-separated hex colors."""
     if input is None or input == '':
         return [color_default]
+    elif input[0] == '#':  # Hex color(s)
+        output = input.split(':')
+        for i, c in enumerate(output):
+            if c[0] != '#' or not all(d in _hex_digits for d in c[1:]):
+                if c != input:
+                    c += f' in input: {input}'
+                print(f'Invalid hex color: {c}')
+                output[i] = color_default
+    else:  # Color name(s)
+        def lookup(c: str) -> str:
+            try:
+                return _color_hex[c]
+            except KeyError:
+                if c != input:
+                    c += f' in input: {input}'
+                print(f'Unknown color name: {c}')
+                return color_default
 
-    if len(input) == 4:  # give wires with EXACTLY 2 colors that striped/banded look
-        padded = input + input[:2]
-    elif pad and len(input) == 2: # hacky style fix: give single color wires a triple-up so that wires are the same size
-        padded = input + input + input
-    else:
-        padded = input
+        output = [lookup(input[i:i + 2]) for i in range(0, len(input), 2)]
 
-    try:
-        output = [_color_hex[padded[i:i + 2]] for i in range(0, len(padded), 2)]
-    except KeyError:
-        print(f'Unknown color specified: {input}')
-        output = [color_default]
+    if len(output) == 2:  # Give wires with EXACTLY 2 colors that striped look.
+        output += output[:1]
+    elif pad and len(output) == 1:  # Hacky style fix: Give single color wires
+        output *= 3                 # a triple-up so that wires are the same size.
+
     return output
 
 

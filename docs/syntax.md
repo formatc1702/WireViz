@@ -309,6 +309,9 @@ The following colors are understood:
 <!-- color list generated with a helper script: -->
 <!-- https://gist.github.com/formatc1702/3c93fb4c5e392364899283f78672b952 -->
 
+Unless the color also is displayed as a non-hexadecimal text in the diagram,
+it is possible to specify colors as hexadecimal RGB values, e.g. `#112233`.
+
 ## Cable color codes
 
 Supported color codes:
