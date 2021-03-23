@@ -95,8 +95,8 @@ class Connector:
     pincount: Optional[int] = None
     image: Optional[Image] = None
     notes: Optional[MultilineHypertext] = None
-    pinlabels: List[Pin] = field(default_factory=list)
     pins: List[Pin] = field(default_factory=list)
+    pinlabels: List[Pin] = field(default_factory=list)
     pincolors: List[Color] = field(default_factory=list)
     color: Optional[Color] = None
     show_name: Optional[bool] = None

@@ -78,7 +78,10 @@ class Harness:
                     raise Exception(f'{via_name}:{via_wire} is used for more than one wire.')
                 via_wire = cable.wirelabels.index(via_wire) + 1  # list index starts at 0, wire IDs start at 1
 
-        self.cables[via_name].connect(from_name, from_pin, via_wire, to_name, to_pin)
+        from_pin_id = self.connectors[from_name].pins.index(from_pin) if from_pin is not None else None
+        to_pin_id = self.connectors[to_name].pins.index(to_pin) if to_pin is not None else None
+
+        self.cables[via_name].connect(from_name, from_pin_id, via_wire, to_name, to_pin_id)
         if from_name in self.connectors:
             self.connectors[from_name].activate_pin(from_pin)
         if to_name in self.connectors:
@@ -135,12 +138,12 @@ class Harness:
                 pinhtml = []
                 pinhtml.append('<table border="0" cellspacing="0" cellpadding="3" cellborder="1">')
 
-                for pin, pinlabel, pincolor in zip_longest(connector.pins, connector.pinlabels, connector.pincolors):
-                    if connector.hide_disconnected_pins and not connector.visible_pins.get(pin, False):
+                for pinid, (pinname, pinlabel, pincolor) in enumerate(zip_longest(connector.pins, connector.pinlabels, connector.pincolors)):
+                    if connector.hide_disconnected_pins and not connector.visible_pins.get(pinname, False):
                         continue
                     pinhtml.append('   <tr>')
                     if connector.ports_left:
-                        pinhtml.append(f'    <td port="p{pin}l">{pin}</td>')
+                        pinhtml.append(f'    <td port="p{pinid}l">{pinname}</td>')
                     if pinlabel:
                         pinhtml.append(f'    <td>{pinlabel}</td>')
                     if connector.pincolors:
@@ -155,7 +158,7 @@ class Harness:
                             pinhtml.append( '    <td colspan="2"></td>')
 
                     if connector.ports_right:
-                        pinhtml.append(f'    <td port="p{pin}r">{pin}</td>')
+                        pinhtml.append(f'    <td port="p{pinid}r">{pinname}</td>')
                     pinhtml.append('   </tr>')
 
                 pinhtml.append('  </table>')
@@ -303,9 +306,9 @@ class Harness:
                     code_left_2 = f'{cable.name}:w{connection.via_port}:w'
                     dot.edge(code_left_1, code_left_2)
                     if from_connector.show_name:
-                        from_info = [str(connection.from_name), str(connection.from_port)]
+                        from_info = [str(connection.from_name), str(self.connectors[connection.from_name].pins[connection.from_port])]
                         if from_connector.pinlabels:
-                            pinlabel = from_connector.pinlabels[from_connector.pins.index(connection.from_port)]
+                            pinlabel = from_connector.pinlabels[connection.from_port]
                             if pinlabel != '':
                                 from_info.append(pinlabel)
                         from_string = ':'.join(from_info)
@@ -319,9 +322,9 @@ class Harness:
                     code_right_2 = f'{connection.to_name}{to_port}:w'
                     dot.edge(code_right_1, code_right_2)
                     if to_connector.show_name:
-                        to_info = [str(connection.to_name), str(connection.to_port)]
+                        to_info = [str(connection.to_name), str(self.connectors[connection.to_name].pins[connection.to_port])]
                         if to_connector.pinlabels:
-                            pinlabel = to_connector.pinlabels[to_connector.pins.index(connection.to_port)]
+                            pinlabel = to_connector.pinlabels[connection.to_port]
                             if pinlabel != '':
                                 to_info.append(pinlabel)
                         to_string = ':'.join(to_info)
