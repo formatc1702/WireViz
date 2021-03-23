@@ -16,6 +16,7 @@
 - Improve type hinting ([#156](https://github.com/formatc1702/WireViz/issues/156), [#163](https://github.com/formatc1702/WireViz/pull/163))
 - Move BOM management and HTML functions to separate modules ([#151](https://github.com/formatc1702/WireViz/issues/151), [#192](https://github.com/formatc1702/WireViz/pull/192))
 - Bug fixes ([#218](https://github.com/formatc1702/WireViz/pull/218), [#221](https://github.com/formatc1702/WireViz/pull/221))
+<!-- Placeholder -->
 
 
 ## [0.2](https://github.com/formatc1702/WireViz/tree/v0.2) (2020-10-17)
