@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Optional, List, Tuple, Union
+from typing import Dict, Optional, List, Tuple, Union
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 
@@ -20,6 +20,7 @@ ConnectorMultiplier = PlainText # = Literal['pincount', 'populated']
 CableMultiplier = PlainText # = Literal['wirecount', 'terminations', 'length', 'total_length']
 ImageScale = PlainText # = Literal['false', 'true', 'width', 'height', 'both']
 Color = PlainText # Two-letter color name = Literal[wv_colors._color_hex.keys()]
+ColorMode = PlainText # = Literal['full', 'FULL', 'hex', 'HEX', 'short', 'SHORT', 'ger', 'GER']
 ColorScheme = PlainText # Color scheme name = Literal[wv_colors.COLOR_CODES.keys()]
 
 # Type combinations
@@ -28,6 +29,25 @@ Pin = Union[int, PlainText] # Pin identifier
 Wire = Union[int, PlainText] # Wire number or Literal['s'] for shield
 NoneOrMorePins = Union[Pin, Tuple[Pin, ...], None] # None, one, or a tuple of pins
 OneOrMoreWires = Union[Wire, Tuple[Wire, ...]] # One or a tuple of wires
+
+
+@dataclass
+class Metadata:
+    title: PlainText
+    description: Optional[MultilineHypertext] = None
+    notes: Optional[MultilineHypertext] = None
+
+
+@dataclass
+class Options:
+    color_mode: ColorMode = 'SHORT'
+    mini_bom_mode: bool = True
+
+
+@dataclass
+class Tweak:
+    override: Optional[Dict[Designator, Dict[str, str]]] = None
+    append: Union[str, List[str], None] = None
 
 
 @dataclass
