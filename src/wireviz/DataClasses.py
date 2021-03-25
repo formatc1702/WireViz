@@ -32,7 +32,6 @@ OneOrMoreWires = Union[Wire, Tuple[Wire, ...]] # One or a tuple of wires
 
 @dataclass
 class Image:
-    gv_dir: InitVar[Path] # Directory of .gv file injected as context during parsing
     # Attributes of the image object <img>:
     src: str
     scale: Optional[ImageScale] = None
@@ -44,7 +43,7 @@ class Image:
     caption: Optional[MultilineHypertext] = None
     # See also HTML doc at https://graphviz.org/doc/info/shapes.html#html
 
-    def __post_init__(self, gv_dir):
+    def __post_init__(self) -> None:
 
         if self.fixedsize is None:
             # Default True if any dimension specified unless self.scale also is specified.
@@ -60,10 +59,10 @@ class Image:
             # because Graphviz requires both when fixedsize=True.
             if self.height:
                 if not self.width:
-                    self.width = self.height * aspect_ratio(gv_dir.joinpath(self.src))
+                    self.width = self.height * aspect_ratio(self.src)
             else:
                 if self.width:
-                    self.height = self.width / aspect_ratio(gv_dir.joinpath(self.src))
+                    self.height = self.width / aspect_ratio(self.src)
 
 
 @dataclass

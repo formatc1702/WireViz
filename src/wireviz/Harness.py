@@ -18,6 +18,7 @@ from wireviz.wv_bom import manufacturer_info_field, component_table_entry, \
 from wireviz.wv_html import generate_html_output
 from wireviz.wv_helper import awg_equiv, mm2_equiv, tuplelist2tsv, flatten2d, \
     open_file_read, open_file_write
+from wireviz.svgembed import embed_svg_images, embed_svg_images_file
 
 
 class Harness:
@@ -345,13 +346,9 @@ class Harness:
         return data.read()
 
     @property
-    def svg(self):
-        from io import BytesIO
+    def svg(self) -> str:
         graph = self.create_graph()
-        data = BytesIO()
-        data.write(graph.pipe(format='svg'))
-        data.seek(0)
-        return data.read()
+        return embed_svg_images(graph.pipe(format='svg').decode('utf-8'), Path.cwd())
 
     def output(self, filename: (str, Path), view: bool = False, cleanup: bool = True, fmt: tuple = ('pdf', )) -> None:
         # graphical output
@@ -360,6 +357,8 @@ class Harness:
             graph.format = f
             graph.render(filename=filename, view=view, cleanup=cleanup)
         graph.save(filename=f'{filename}.gv')
+        if 'svg' in fmt:
+            embed_svg_images_file(f'{filename}.svg')
         # bom output
         bomlist = bom_list(self.bom())
         with open_file_write(f'{filename}.bom.tsv') as file:

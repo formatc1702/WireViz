@@ -17,12 +17,13 @@ from wireviz.Harness import Harness
 from wireviz.wv_helper import expand, open_file_read
 
 
-def parse(yaml_input: str, file_out: (str, Path) = None, return_types: (None, str, Tuple[str]) = None) -> Any:
+def parse(yaml_input: str, base_path: (str, Path) = None, file_out: (str, Path) = None, return_types: (None, str, Tuple[str]) = None) -> Any:
     """
     Parses yaml input string and does the high-level harness conversion
 
     :param yaml_input: a string containing the yaml input data
-    :param file_out:
+    :param base_path: base path used to resolve any relative paths to image files
+    :param file_out: filename of the generated output
     :param return_types: if None, then returns None; if the value is a string, then a
         corresponding data format will be returned; if the value is a tuple of strings,
         then for every valid format in the `return_types` tuple, another return type
@@ -44,10 +45,11 @@ def parse(yaml_input: str, file_out: (str, Path) = None, return_types: (None, st
             if len(yaml_data[sec]) > 0:
                 if ty == dict:
                     for key, attribs in yaml_data[sec].items():
-                        # The Image dataclass might need to open an image file with a relative path.
                         image = attribs.get('image')
                         if isinstance(image, dict):
-                            image['gv_dir'] = Path(file_out if file_out else '').parent # Inject context
+                            image_path = image['src']
+                            if image_path and not Path(image_path).is_absolute():  # resolve relative image path
+                                image['src'] = (Path(base_path) / image_path).resolve()
 
                         if sec == 'connectors':
                             if not attribs.get('autogenerate', False):
@@ -209,7 +211,7 @@ def parse_file(yaml_file: str, file_out: (str, Path) = None) -> None:
         file_out = fn
     file_out = os.path.abspath(file_out)
 
-    parse(yaml_input, file_out=file_out)
+    parse(yaml_input, base_path=Path(yaml_file).parent, file_out=file_out)
 
 
 def parse_cmdline():
@@ -251,7 +253,7 @@ def main():
         file_out = args.output_file
     file_out = os.path.abspath(file_out)
 
-    parse(yaml_input, file_out=file_out)
+    parse(yaml_input, base_path=Path(args.input_file).parent, file_out=file_out)
 
 
 if __name__ == '__main__':
