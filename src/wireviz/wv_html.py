@@ -15,13 +15,14 @@ def generate_html_output(filename: Union[str, Path], bom_list: List[List[str]], 
         file.write('<html lang="en"><head>\n')
         file.write(' <meta charset="UTF-8">\n')
         file.write(f' <meta name="generator" content="{APP_NAME} {__version__} - {APP_URL}">\n')
-        file.write(f' <title>{metadata.title}</title>\n')
+        file.write(f' <title>{metadata["title"]}</title>\n')
         file.write(f'</head><body style="font-family:{options.fontname};background-color:'
                    f'{wv_colors.translate_color(options.bgcolor, "HEX")}">\n')
 
-        file.write(f'<h1>{metadata.title}</h1>\n')
-        if metadata.description:
-            file.write(f'<p>{metadata.description}</p>\n')
+        file.write(f'<h1>{metadata["title"]}</h1>\n')
+        description = metadata.get('description')
+        if description:
+            file.write(f'<p>{description}</p>\n')
         file.write('<h2>Diagram</h2>\n')
         with open_file_read(f'{filename}.svg') as svg:
             file.write(re.sub(
@@ -47,7 +48,8 @@ def generate_html_output(filename: Union[str, Path], bom_list: List[List[str]], 
             file.write(' </tr>\n')
         file.write('</table>\n')
 
-        if metadata.notes:
-            file.write(f'<h2>Notes</h2>\n<p>{metadata.notes}</p>\n')
+        notes = metadata.get('notes')
+        if notes:
+            file.write(f'<h2>Notes</h2>\n<p>{notes}</p>\n')
 
         file.write('</body></html>\n')

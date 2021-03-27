@@ -35,11 +35,12 @@ def parse(yaml_input: str, file_out: (str, Path) = None, return_types: (None, st
 
     yaml_data = yaml.safe_load(yaml_input)
 
-    # Assign default metadata.title here to avoid needing file_out in Metadata.__post_init__().
     harness = Harness(
-        Metadata(**{'title': Path(file_out).stem, **yaml_data.get('metadata', {})}),
-        Options(**yaml_data.get('options', {})),
+        metadata = Metadata(**yaml_data.get('metadata', {})),
+        options = Options(**yaml_data.get('options', {})),
     )
+    if 'title' not in harness.metadata:
+        harness.metadata['title'] = Path(file_out).stem
 
     # add items
     sections = ['connectors', 'cables', 'connections']

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Optional, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 
@@ -30,12 +30,10 @@ Wire = Union[int, PlainText] # Wire number or Literal['s'] for shield
 NoneOrMorePins = Union[Pin, Tuple[Pin, ...], None] # None, one, or a tuple of pins
 OneOrMoreWires = Union[Wire, Tuple[Wire, ...]] # One or a tuple of wires
 
-
-@dataclass
-class Metadata:
-    title: PlainText
-    description: Optional[MultilineHypertext] = None
-    notes: Optional[MultilineHypertext] = None
+# Metadata can contain whatever is needed by the HTML generation/template.
+MetadataKeys = PlainText  # Literal['title', 'description', 'notes', ...]
+class Metadata(dict):
+    pass
 
 
 @dataclass
