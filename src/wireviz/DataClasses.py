@@ -41,8 +41,21 @@ class Options:
     fontname: PlainText = 'arial'
     bgcolor: Color = 'WH'
     bgcolor_node: Optional[Color] = 'WH'
+    bgcolor_connector: Optional[Color] = None
+    bgcolor_cable: Optional[Color] = None
+    bgcolor_bundle: Optional[Color] = None
     color_mode: ColorMode = 'SHORT'
     mini_bom_mode: bool = True
+
+    def __post_init__(self):
+        if not self.bgcolor_node:
+            self.bgcolor_node = self.bgcolor
+        if not self.bgcolor_connector:
+            self.bgcolor_connector = self.bgcolor_node
+        if not self.bgcolor_cable:
+            self.bgcolor_cable = self.bgcolor_node
+        if not self.bgcolor_bundle:
+            self.bgcolor_bundle = self.bgcolor_cable
 
 
 @dataclass
