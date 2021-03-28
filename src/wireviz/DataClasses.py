@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Optional, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 
@@ -20,6 +20,7 @@ ConnectorMultiplier = PlainText # = Literal['pincount', 'populated']
 CableMultiplier = PlainText # = Literal['wirecount', 'terminations', 'length', 'total_length']
 ImageScale = PlainText # = Literal['false', 'true', 'width', 'height', 'both']
 Color = PlainText # Two-letter color name = Literal[wv_colors._color_hex.keys()]
+ColorMode = PlainText # = Literal['full', 'FULL', 'hex', 'HEX', 'short', 'SHORT', 'ger', 'GER']
 ColorScheme = PlainText # Color scheme name = Literal[wv_colors.COLOR_CODES.keys()]
 
 # Type combinations
@@ -28,6 +29,33 @@ Pin = Union[int, PlainText] # Pin identifier
 Wire = Union[int, PlainText] # Wire number or Literal['s'] for shield
 NoneOrMorePins = Union[Pin, Tuple[Pin, ...], None] # None, one, or a tuple of pins
 OneOrMoreWires = Union[Wire, Tuple[Wire, ...]] # One or a tuple of wires
+
+# Metadata can contain whatever is needed by the HTML generation/template.
+MetadataKeys = PlainText  # Literal['title', 'description', 'notes', ...]
+class Metadata(dict):
+    pass
+
+
+@dataclass
+class Options:
+    fontname: PlainText = 'arial'
+    bgcolor: Color = 'WH'
+    bgcolor_node: Optional[Color] = 'WH'
+    bgcolor_connector: Optional[Color] = None
+    bgcolor_cable: Optional[Color] = None
+    bgcolor_bundle: Optional[Color] = None
+    color_mode: ColorMode = 'SHORT'
+    mini_bom_mode: bool = True
+
+    def __post_init__(self):
+        if not self.bgcolor_node:
+            self.bgcolor_node = self.bgcolor
+        if not self.bgcolor_connector:
+            self.bgcolor_connector = self.bgcolor_node
+        if not self.bgcolor_cable:
+            self.bgcolor_cable = self.bgcolor_node
+        if not self.bgcolor_bundle:
+            self.bgcolor_bundle = self.bgcolor_cable
 
 
 @dataclass
