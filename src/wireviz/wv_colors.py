@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
+from typing import Dict, List
+
+from wireviz.DataClasses import Color, Colors
 
 COLOR_CODES = {
     'DIN': ['WH', 'BN', 'GN', 'YE', 'GY', 'PK', 'BU', 'RD', 'BK', 'VT', 'GYPK', 'RDBU', 'WHGN', 'BNGN', 'WHYE', 'YEBN',
@@ -109,6 +111,7 @@ color_default = '#ffffff'
 
 _hex_digits = set('0123456789abcdefABCDEF')
 
+
 def get_color_hex(input, pad=False):
     """Return list of hex colors from either a string of color names or :-separated hex colors."""
     if input is None or input == '':
@@ -141,6 +144,18 @@ def get_color_hex(input, pad=False):
     return output
 
 
+def get_color_translation(translate: Dict[Color, str], input: Colors) -> List[str]:
+    """Return list of colors translations from either a string of color names or :-separated hex colors."""
+    def from_hex(hex_input: str) -> str:
+        for color, hex in _color_hex.items():
+            if hex == hex_input:
+                return translate[color]
+        return f'({",".join(str(int(hex_input[i:i+2], 16)) for i in range(1, 6, 2))})'
+
+    return [from_hex(h) for h in input.lower().split(':')] if input[0] == '#' else \
+           [translate.get(input[i:i+2], '??') for i in range(0, len(input), 2)]
+
+
 def translate_color(input, color_mode):
     if input == '' or input is None:
         return ''
@@ -150,11 +165,11 @@ def translate_color(input, color_mode):
 
     color_mode = color_mode.lower()
     if color_mode == 'full':
-        output = "/".join([_color_full[input[i:i+2]] for i in range(0,len(input),2)])
+        output = "/".join(get_color_translation(_color_full, input))
     elif color_mode == 'hex':
         output = ':'.join(get_color_hex(input, pad=False))
     elif color_mode == 'ger':
-        output = "".join([_color_ger[input[i:i+2]] for i in range(0,len(input),2)])
+        output = "".join(get_color_translation(_color_ger, input))
     elif color_mode == 'short':
         output = input
     else:
