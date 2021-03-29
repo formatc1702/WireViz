@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Dict, Tuple, Union
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 
@@ -32,10 +32,11 @@ OneOrMoreWires = Union[Wire, Tuple[Wire, ...]] # One or a tuple of wires
 
 
 @dataclass
-class Metadata:
-    title: PlainText
-    description: Optional[MultilineHypertext] = None
-    notes: Optional[MultilineHypertext] = None
+class Metadata(Dict):
+    pass
+    # title: PlainText
+    # description: Optional[MultilineHypertext] = None
+    # notes: Optional[MultilineHypertext] = None
 
 
 @dataclass

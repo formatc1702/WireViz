@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="generator" content="<!-- %generator% -->">
+  <title><!-- %title% --></title>
+  <style>
+    body {
+      font-family: Arial;
+    }
+
+    table {
+      border: 0.35mm solid black; /* line weight based on DIN 15 */
+      padding: 0;
+      border-bottom: 0;
+      border-right: 0;
+      border-spacing: 0mm;
+    }
+
+    td, th {
+      border: 0.25mm solid black; /* line weight based on DIN 15 */
+      border-top: 0;
+      border-left: 0;
+
+      overflow: hidden;
+      /* display: inline-block; */
+      white-space: nowrap;
+      font-size: 2.8mm;
+    }
+
+    /* Canvas size based on DIN 823 / DIN 6771 / EN ISO 5457 */
+
+    #frame {
+      position: relative;
+      border: 0.35mm solid black
+    }
+
+    .A4, .sheetsize_default { /* portrait */
+      width: 180mm;
+      height: 277mm;
+    }
+
+    .A3 { /* landscape */
+      width: 390mm;
+      height: 277mm;
+    }
+
+    .A2 { /* landscape */
+      width: 564mm;
+      height: 400mm;
+    }
+
+    #diagram {
+      position: relative;
+      top: 0;
+      left: 0;
+      max-width: 100%;
+      height: calc(100% - 13 * 4.25mm);
+      /* TODO: auto-adapt to height of title block + BOM table;
+               BOM table might be above (A4) or to the left (A3 and larger) of the title block */
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    #diagram svg, #diagram img {
+      max-width: 95%;
+      max-height: 100%;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #titleblock {
+      position: absolute;
+      bottom: 0mm;
+      right: -0mm;
+    }
+
+    #titleblock table {
+      width: 180mm;
+      height: 38.25mm;
+    }
+
+    #titleblock tr, #bom tr {
+      height: 4.25mm;
+    }
+
+    .A4 #bom { /* BOM on top of title block */
+      position: absolute;
+      bottom: 38.25mm;
+      right: 0;
+    }
+
+    .A3 #bom, .A2 #bom { /* BOM to the left of title block */
+      position: absolute;
+      bottom: 0mm;
+      left: 0mm;
+    }
+
+    #bom table {
+      width:180mm;
+    }
+
+    #bom th, td {
+      text-align: left;
+    }
+
+    #bom .bom_col_id {
+      text-align: center;
+    }
+
+    #bom .bom_col_qty {
+      text-align: right;
+    }
+
+    .name {
+      width: 16mm;
+    }
+
+    .date {
+      width: 10mm;
+    }
+
+    .revno {
+      text-align: center;
+      width: 6mm;
+    }
+
+    .changelog {
+      width: 22mm;
+    }
+
+    .process {
+      width: 18mm;
+    }
+
+    .title {
+      width: 82mm;
+      font-size: 5.6mm;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .company {
+      font-size: 4mm;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .partno {
+      font-size: 4mm;
+      text-align: center;
+      white-space: normal;
+    }
+
+    .sheetno {
+      width: 12.75mm;
+      text-align: center;
+    }
+
+  </style>
+  <style type="text/css" media="print">
+
+    @page {
+      size: auto;
+      margin: 0;
+    }
+
+    /* TODO: auto-adjust based on portrait (larger margin on left) or landscape (larger margin on top) */
+    #page {
+      margin: 10mm;
+      margin-left: 20mm;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="page">
+    <div id="frame" class="sheetsize_default">
+
+      <div id="diagram">
+
+        <div id="description">
+          <!-- %description% -->
+        </div>
+
+        <!-- %diagram% -->
+
+        <div id="notes">
+          <!-- %notes% -->
+        </div>
+
+      </div>
+
+      <div id="bom">
+        <!-- %bom_reversed% -->
+      </div>
+
+      <div id="titleblock">
+        <table>
+          <tr>
+            <td class="revno"><!-- %revisions_8% --></td>
+            <td class="changelog"><!-- %revisions_8_changelog% --></td>
+            <td class="date"><!-- %revisions_8_date% --></td>
+            <td class="name"><!-- %revisions_8_name% --></td>
+            <td class="process"></td>
+            <td class="date">Date</td>
+            <td class="name">Name</td>
+            <td class="title" colspan="3" rowspan="5"><!-- %title% --></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_7% --></td>
+            <td><!-- %revisions_7_changelog% --></td>
+            <td><!-- %revisions_7_date% --></td>
+            <td><!-- %revisions_7_name% --></td>
+            <td><!-- %authors_1% --></td>
+            <td><!-- %authors_1_date% --></td>
+            <td><!-- %authors_1_name% --></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_6% --></td>
+            <td><!-- %revisions_6_changelog% --></td>
+            <td><!-- %revisions_6_date% --></td>
+            <td><!-- %revisions_6_name% --></td>
+            <td><!-- %authors_2% --></td>
+            <td><!-- %authors_2_date% --></td>
+            <td><!-- %authors_2_name% --></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_5% --></td>
+            <td><!-- %revisions_5_changelog% --></td>
+            <td><!-- %revisions_5_date% --></td>
+            <td><!-- %revisions_5_name% --></td>
+            <td><!-- %authors_3% --></td>
+            <td><!-- %authors_3_date% --></td>
+            <td><!-- %authors_3_name% --></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_4% --></td>
+            <td><!-- %revisions_4_changelog% --></td>
+            <td><!-- %revisions_4_date% --></td>
+            <td><!-- %revisions_4_name% --></td>
+            <td colspan="2"></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_3% --></td>
+            <td><!-- %revisions_3_changelog% --></td>
+            <td><!-- %revisions_3_date% --></td>
+            <td><!-- %revisions_3_name% --></td>
+            <td class="company" colspan="3" rowspan="3"><!-- %company% --></td>
+            <td class="partno" colspan="2" rowspan="3"><!-- %pn% --></td>
+            <td class="sheetno" rowspan="2">Sheet<br /><!-- %sheet_current% --></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_2% --></td>
+            <td><!-- %revisions_2_changelog% --></td>
+            <td><!-- %revisions_2_date% --></td>
+            <td><!-- %revisions_2_name% --></td>
+          </tr>
+          <tr>
+            <td class="revno"><!-- %revisions_1% --></td>
+            <td><!-- %revisions_1_changelog% --></td>
+            <td><!-- %revisions_1_date% --></td>
+            <td><!-- %revisions_1_name% --></td>
+            <td class="sheetno">of <!-- %sheet_total% --></td>
+          </tr>
+          <tr>
+            <td>Rev</td>
+            <td>Changelog</td>
+            <td>Date</td>
+            <td>Name</td>
+            <td colspan="3"></td>
+            <td></td>
+            <td colspan="2"></td>
+          </tr>
+        </table>
+      </div> <!-- /titleblock -->
+
+    </div> <!-- /frame -->
+  </div> <!-- /page -->
+</body>
+</html>
