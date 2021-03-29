@@ -40,6 +40,7 @@ class Image:
     width: Optional[int] = None
     height: Optional[int] = None
     fixedsize: Optional[bool] = None
+    bgcolor: Optional[Color] = None
     # Contents of the text cell <td> just below the image cell:
     caption: Optional[MultilineHypertext] = None
     # See also HTML doc at https://graphviz.org/doc/info/shapes.html#html
@@ -76,6 +77,7 @@ class AdditionalComponent:
     qty: float = 1
     unit: Optional[str] = None
     qty_multiplier: Union[ConnectorMultiplier, CableMultiplier, None] = None
+    bgcolor: Optional[Color] = None
 
     @property
     def description(self) -> str:
@@ -85,6 +87,8 @@ class AdditionalComponent:
 @dataclass
 class Connector:
     name: Designator
+    bgcolor: Optional[Color] = None
+    bgcolor_title: Optional[Color] = None
     manufacturer: Optional[MultilineHypertext] = None
     mpn: Optional[MultilineHypertext] = None
     pn: Optional[Hypertext] = None
@@ -167,6 +171,8 @@ class Connector:
 @dataclass
 class Cable:
     name: Designator
+    bgcolor: Optional[Color] = None
+    bgcolor_title: Optional[Color] = None
     manufacturer: Union[MultilineHypertext, List[MultilineHypertext], None] = None
     mpn: Union[MultilineHypertext, List[MultilineHypertext], None] = None
     pn: Union[Hypertext, List[Hypertext], None] = None

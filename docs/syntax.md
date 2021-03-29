@@ -62,6 +62,8 @@ additional_bom_items:  # custom items to add to BOM
                      # no color marks will be added to remaining pins
 
   # rendering information (all optional)
+  bgcolor: <color>       # Background color of diagram connector box
+  bgcolor_title: <color> # Background color of title in diagram connector box
   style: <style>         # may be set to simple for single pin connectors
   show_name: <bool>      # defaults to true for regular connectors,
                          # false for simple connectors
@@ -137,6 +139,8 @@ Since the auto-incremented and auto-assigned designator is not known to the user
   wirelabels: <List>  # optional; one label for each wire
 
   # rendering information (all optional)
+  bgcolor: <color>          # Background color of diagram cable box
+  bgcolor_title: <color>    # Background color of title in diagram cable box
   show_name: <bool>         # defaults to true
   show_wirecount: <bool>    # defaults to true
   show_wirenumbers: <bool>  # defaults to true for cables; false for bundles
@@ -256,6 +260,7 @@ Parts can be added to a connector or cable in the section `<additional-component
   pn: <str>            # [internal] part number
   mpn: <str>           # manufacturer part number
   manufacturer: <str>  # manufacturer name  
+  bgcolor: <color>     # Background color of entry in diagram component box
 ```
 
 Alternatively items can be added to just the BOM by putting them in the section `<bom-item>` above.
@@ -304,6 +309,9 @@ The following colors are understood:
 <!-- color list generated with a helper script: -->
 <!-- https://gist.github.com/formatc1702/3c93fb4c5e392364899283f78672b952 -->
 
+It is also possible to specify colors as hexadecimal RGB values, e.g. `#112233` or `#FFFF00:#009900`.
+Remember quoting strings containing a `#` in the YAML file.
+
 ## Cable color codes
 
 Supported color codes:
@@ -330,6 +338,7 @@ image:
   src: <path>        # path to the image file
   # optional parameters:
   caption: <str>     # text to display below the image
+  bgcolor: <color>   # Background color of entry in diagram component box
   width: <int>       # range: 1~65535; unit: points
   height: <int>      # range: 1~65535; unit: points
   # if only one dimension (width/height) is specified, the image is scaled proportionally.
