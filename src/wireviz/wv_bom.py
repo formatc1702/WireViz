@@ -1,42 +1,65 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from typing import List, Union
-from collections import Counter
+from dataclasses import asdict
+from itertools import groupby
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from wireviz.DataClasses import Connector, Cable
+from wireviz.DataClasses import AdditionalComponent, Connector, Cable
 from wireviz.wv_gv_html import html_line_breaks
 from wireviz.wv_helper import clean_whitespace
 
-def get_additional_component_table(harness, component: Union[Connector, Cable]) -> List[str]:
+BOM_COLUMNS_ALWAYS = ('id', 'description', 'qty', 'unit', 'designators')
+BOM_COLUMNS_OPTIONAL = ('pn', 'manufacturer', 'mpn')
+BOM_COLUMNS_IN_KEY = ('description', 'unit') + BOM_COLUMNS_OPTIONAL
+
+BOMKey = Tuple[str, ...]
+BOMColumn = str  # = Literal[*BOM_COLUMNS_ALWAYS, *BOM_COLUMNS_OPTIONAL]
+BOMEntry = Dict[BOMColumn, Union[str, int, float, List[str], None]]
+
+def optional_fields(part: Union[Connector, Cable, AdditionalComponent]) -> BOMEntry:
+    """Return part field values for the optional BOM columns as a dict."""
+    part = asdict(part)
+    return {field: part.get(field) for field in BOM_COLUMNS_OPTIONAL}
+
+def get_additional_component_table(harness: "Harness", component: Union[Connector, Cable]) -> List[str]:
+    """Return a list of diagram node table row strings with additional components."""
     rows = []
     if component.additional_components:
         rows.append(["Additional components"])
-        for extra in component.additional_components:
-            qty = extra.qty * component.get_qty_multiplier(extra.qty_multiplier)
+        for part in component.additional_components:
+            common_args = {
+                'qty': part.qty * component.get_qty_multiplier(part.qty_multiplier),
+                'unit': part.unit,
+            }
             if harness.mini_bom_mode:
-                id = get_bom_index(harness, extra.description, extra.unit, extra.manufacturer, extra.mpn, extra.pn)
-                rows.append(component_table_entry(f'#{id} ({extra.type.rstrip()})', qty, extra.unit))
+                id = get_bom_index(harness.bom(), bom_entry_key({**asdict(part), 'description': part.description}))
+                rows.append(component_table_entry(f'#{id} ({part.type.rstrip()})', **common_args))
             else:
-                rows.append(component_table_entry(extra.description, qty, extra.unit, extra.pn, extra.manufacturer, extra.mpn))
-    return(rows)
+                rows.append(component_table_entry(part.description, **common_args, **optional_fields(part)))
+    return rows
 
-def get_additional_component_bom(component: Union[Connector, Cable]) -> List[dict]:
+def get_additional_component_bom(component: Union[Connector, Cable]) -> List[BOMEntry]:
+    """Return a list of BOM entries with additional components."""
     bom_entries = []
     for part in component.additional_components:
-        qty = part.qty * component.get_qty_multiplier(part.qty_multiplier)
         bom_entries.append({
-            'item': part.description,
-            'qty': qty,
+            'description': part.description,
+            'qty': part.qty * component.get_qty_multiplier(part.qty_multiplier),
             'unit': part.unit,
-            'manufacturer': part.manufacturer,
-            'mpn': part.mpn,
-            'pn': part.pn,
-            'designators': component.name if component.show_name else None
+            'designators': component.name if component.show_name else None,
+            **optional_fields(part),
         })
-    return(bom_entries)
+    return bom_entries
 
-def generate_bom(harness):
+def bom_entry_key(entry: BOMEntry) -> BOMKey:
+    """Return a tuple of string values from the dict that must be equal to join BOM entries."""
+    if 'key' not in entry:
+        entry['key'] = tuple(clean_whitespace(make_str(entry.get(c))) for c in BOM_COLUMNS_IN_KEY)
+    return entry['key']
+
+def generate_bom(harness: "Harness") -> List[BOMEntry]:
+    """Return a list of BOM entries generated from the harness."""
     from wireviz.Harness import Harness  # Local import to avoid circular imports
     bom_entries = []
     # connectors
@@ -48,15 +71,15 @@ def generate_bom(harness):
                            + (f', {connector.pincount} pins' if connector.show_pincount else '')
                            + (f', {connector.color}' if connector.color else ''))
             bom_entries.append({
-                'item': description, 'qty': 1, 'unit': None, 'designators': connector.name if connector.show_name else None,
-                'manufacturer': connector.manufacturer, 'mpn': connector.mpn, 'pn': connector.pn
+                'description': description, 'designators': connector.name if connector.show_name else None,
+                **optional_fields(connector),
             })
 
         # add connectors aditional components to bom
         bom_entries.extend(get_additional_component_bom(connector))
 
     # cables
-    # TODO: If category can have other non-empty values than 'bundle', maybe it should be part of item name?
+    # TODO: If category can have other non-empty values than 'bundle', maybe it should be part of description?
     for cable in harness.cables.values():
         if not cable.ignore_in_bom:
             if cable.category != 'bundle':
@@ -67,8 +90,8 @@ def generate_bom(harness):
                                + (f' x {cable.gauge} {cable.gauge_unit}' if cable.gauge else ' wires')
                                + (' shielded' if cable.shield else ''))
                 bom_entries.append({
-                    'item': description, 'qty': cable.length, 'unit': cable.length_unit, 'designators': cable.name if cable.show_name else None,
-                    'manufacturer': cable.manufacturer, 'mpn': cable.mpn, 'pn': cable.pn
+                    'description': description, 'qty': cable.length, 'unit': cable.length_unit, 'designators': cable.name if cable.show_name else None,
+                    **optional_fields(cable),
                 })
             else:
                 # add each wire from the bundle to the bom
@@ -78,101 +101,91 @@ def generate_bom(harness):
                                    + (f', {cable.gauge} {cable.gauge_unit}' if cable.gauge else '')
                                    + (f', {color}' if color else ''))
                     bom_entries.append({
-                        'item': description, 'qty': cable.length, 'unit': cable.length_unit, 'designators': cable.name if cable.show_name else None,
-                        'manufacturer': index_if_list(cable.manufacturer, index),
-                        'mpn': index_if_list(cable.mpn, index), 'pn': index_if_list(cable.pn, index)
+                        'description': description, 'qty': cable.length, 'unit': cable.length_unit, 'designators': cable.name if cable.show_name else None,
+                        **{k: index_if_list(v, index) for k, v in optional_fields(cable).items()},
                     })
 
         # add cable/bundles aditional components to bom
         bom_entries.extend(get_additional_component_bom(cable))
 
-    for item in harness.additional_bom_items:
-        bom_entries.append({
-            'item': item.get('description', ''), 'qty': item.get('qty', 1), 'unit': item.get('unit'), 'designators': item.get('designators'),
-            'manufacturer': item.get('manufacturer'), 'mpn': item.get('mpn'), 'pn': item.get('pn')
-        })
+    # add harness aditional components to bom directly, as they both are List[BOMEntry]
+    bom_entries.extend(harness.additional_bom_items)
 
     # remove line breaks if present and cleanup any resulting whitespace issues
     bom_entries = [{k: clean_whitespace(v) for k, v in entry.items()} for entry in bom_entries]
 
     # deduplicate bom
     bom = []
-    bom_types_group = lambda bt: (bt['item'], bt['unit'], bt['manufacturer'], bt['mpn'], bt['pn'])
-    for group in Counter([bom_types_group(v) for v in bom_entries]):
-        group_entries = [v for v in bom_entries if bom_types_group(v) == group]
-        designators = []
-        for group_entry in group_entries:
-            if group_entry.get('designators'):
-                if isinstance(group_entry['designators'], List):
-                    designators.extend(group_entry['designators'])
-                else:
-                    designators.append(group_entry['designators'])
-        designators = list(dict.fromkeys(designators))  # remove duplicates
-        designators.sort()
-        total_qty = sum(entry['qty'] for entry in group_entries)
-        bom.append({**group_entries[0], 'qty': round(total_qty, 3), 'designators': designators})
+    for _, group in groupby(sorted(bom_entries, key=bom_entry_key), key=bom_entry_key):
+        group_entries = list(group)
+        designators = sum((make_list(entry.get('designators')) for entry in group_entries), [])
+        total_qty = sum(entry.get('qty', 1) for entry in group_entries)
+        bom.append({**group_entries[0], 'qty': round(total_qty, 3), 'designators': sorted(set(designators))})
 
-    bom = sorted(bom, key=lambda k: k['item'])  # sort list of dicts by their values (https://stackoverflow.com/a/73050)
+    # add an incrementing id to each bom entry
+    return [{**entry, 'id': index} for index, entry in enumerate(bom, 1)]
 
-    # add an incrementing id to each bom item
-    bom = [{**entry, 'id': index} for index, entry in enumerate(bom, 1)]
-    return bom
-
-def get_bom_index(harness, item, unit, manufacturer, mpn, pn):
-    # Remove linebreaks and clean whitespace of values in search
-    target = tuple(clean_whitespace(v) for v in (item, unit, manufacturer, mpn, pn))
-    for entry in harness.bom():
-        if (entry['item'], entry['unit'], entry['manufacturer'], entry['mpn'], entry['pn']) == target:
+def get_bom_index(bom: List[BOMEntry], target: BOMKey) -> int:
+    """Return id of BOM entry or raise exception if not found."""
+    for entry in bom:
+        if bom_entry_key(entry) == target:
             return entry['id']
-    return None
+    raise Exception('Internal error: No BOM entry found matching: ' + '|'.join(target))
 
-def bom_list(bom):
-    keys = ['id', 'item', 'qty', 'unit', 'designators'] # these BOM columns will always be included
-    for fieldname in ['pn', 'manufacturer', 'mpn']: # these optional BOM columns will only be included if at least one BOM item actually uses them
+def bom_list(bom: List[BOMEntry]) -> List[List[str]]:
+    """Return list of BOM rows as lists of column strings with headings in top row."""
+    keys = list(BOM_COLUMNS_ALWAYS)  # Always include this fixed set of BOM columns.
+    for fieldname in BOM_COLUMNS_OPTIONAL:  # Include only those optional BOM columns that are in use.
         if any(entry.get(fieldname) for entry in bom):
             keys.append(fieldname)
-    bom_list = []
-    # list of staic bom header names,  headers not specified here are generated by capitilising the internal name
+    # Custom mapping from internal name to BOM column headers.
+    # Headers not specified here are generated by capitilising the internal name.
     bom_headings = {
+        "description": "Item",  # TODO: Remove this line to use 'Description' in BOM heading.
         "pn": "P/N",
         "mpn": "MPN"
     }
-    bom_list.append([(bom_headings[k] if k in bom_headings else k.capitalize()) for k in keys])  # create header row with keys
-    for item in bom:
-        item_list = [item.get(key, '') for key in keys]  # fill missing values with blanks
-        item_list = [', '.join(subitem) if isinstance(subitem, List) else subitem for subitem in item_list]  # convert any lists into comma separated strings
-        item_list = ['' if subitem is None else subitem for subitem in item_list]  # if a field is missing for some (but not all) BOM items
-        bom_list.append(item_list)
-    return bom_list
+    return ([[bom_headings.get(k, k.capitalize()) for k in keys]] +  # Create header row with key names
+            [[make_str(entry.get(k)) for k in keys] for entry in bom])  # Create string list for each entry row
 
-def component_table_entry(type, qty, unit=None, pn=None, manufacturer=None, mpn=None):
-    output = f'{qty}'
-    if unit:
-        output += f' {unit}'
-    output += f' x {type}'
-    # print an extra line with part and manufacturer information if provided
+def component_table_entry(
+        type: str,
+        qty: Union[int, float],
+        unit: Optional[str] = None,
+        pn: Optional[str] = None,
+        manufacturer: Optional[str] = None,
+        mpn: Optional[str] = None,
+    ) -> str:
+    """Return a diagram node table row string with an additional component."""
     manufacturer_str = manufacturer_info_field(manufacturer, mpn)
-    if pn or manufacturer_str:
-        output += '<br/>'
-        if pn:
-            output += f'P/N: {pn}'
-            if manufacturer_str:
-                output += ', '
-        if manufacturer_str:
-            output += manufacturer_str
-    output = html_line_breaks(output)
+    output = (f'{qty}'
+              + (f' {unit}' if unit else '')
+              + f' x {type}'
+              + ('<br/>' if pn or manufacturer_str else '')
+              + (f'P/N: {pn}' if pn else '')
+              + (', ' if pn and manufacturer_str else '')
+              + (manufacturer_str or ''))
     # format the above output as left aligned text in a single visible cell
     # indent is set to two to match the indent in the generated html table
     return f'''<table border="0" cellspacing="0" cellpadding="3" cellborder="1"><tr>
-   <td align="left" balign="left">{output}</td>
+   <td align="left" balign="left">{html_line_breaks(output)}</td>
   </tr></table>'''
 
-def manufacturer_info_field(manufacturer, mpn):
+def manufacturer_info_field(manufacturer: Optional[str], mpn: Optional[str]) -> Optional[str]:
+    """Return the manufacturer and/or the mpn in one single string or None otherwise."""
     if manufacturer or mpn:
         return f'{manufacturer if manufacturer else "MPN"}{": " + str(mpn) if mpn else ""}'
     else:
         return None
 
-# Return the value indexed if it is a list, or simply the value otherwise.
-def index_if_list(value, index):
+def index_if_list(value: Any, index: int) -> Any:
+    """Return the value indexed if it is a list, or simply the value otherwise."""
     return value[index] if isinstance(value, list) else value
+
+def make_list(value: Any) -> list:
+    """Return value if a list, empty list if None, or single element list otherwise."""
+    return value if isinstance(value, list) else [] if value is None else [value]
+
+def make_str(value: Any) -> str:
+    """Return comma separated elements if a list, empty string if None, or value as a string otherwise."""
+    return ', '.join(str(element) for element in make_list(value))
